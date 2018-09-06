@@ -4,5 +4,5 @@
 
 usage:
 ``
-pricer target-size
+pricer target-size < input_log 2> error.log
 ``
