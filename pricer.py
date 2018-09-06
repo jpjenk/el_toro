@@ -2,29 +2,7 @@
 """Traded shares log file analyzer."""
 
 import sys
-
-
-def parse_args(args):
-    """Error check the command line parameter."""
-
-    if len(args) == 1 or args[1] in ['-h', '--help']:
-        print('Traded shares log file analyzer')
-        print('  usage: pricer [target-size]\n')
-        print('  where target-size is an integer representing ')
-        print('  the volume threshold for buying and selling shares.')
-        sys.exit()
-    elif len(args) > 2:
-        print('Too many parameters')
-        sys.exit()
-    else:
-        try:
-            target = int(args[1])
-        except ValueError as e:
-            print('Target-size must be an integer value')
-            sys.exit()
-
-    return target
-
+import aux
 
 def parse_log(line):
     """Decode log message line."""
@@ -66,7 +44,9 @@ def parse_log(line):
 
 if __name__ == '__main__':
 
-    target = parse_args(sys.argv)
+    target = aux.parse_args(sys.argv)
+    if not target:
+        sys.exit()
 
     for line in sys.stdin:
         order = parse_log(line)
