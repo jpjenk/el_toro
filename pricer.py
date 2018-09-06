@@ -3,6 +3,7 @@
 
 import sys
 import aux
+from classdef import Market
 
 def parse_log(line):
     """Decode log message line."""
@@ -11,8 +12,7 @@ def parse_log(line):
     if len(msg) == 6 and msg[1] == 'A':
         # Add order
         if msg[3] not in ['B', 'S']:
-            print('Message skipped: Side value error')
-            return None
+            return False
         try:
             order = {'timestamp': int(msg[0]),
                      'order_type': msg[1],
@@ -22,8 +22,7 @@ def parse_log(line):
                      'size': int(msg[5])}
             return order
         except ValueError as e:
-            print(e)
-            return None
+            return False
 
     elif len(msg) == 4 and msg[1] == 'R':
         # Reduce order
@@ -34,15 +33,16 @@ def parse_log(line):
                      'size': int(msg[3])}
             return order
         except ValueError as e:
-            print(e)
-            return None
+            return False
 
     else:
         # Message is incorrectly formatted
-        return None
+        return False
 
 
 if __name__ == '__main__':
+
+    book = Market()
 
     target = aux.parse_args(sys.argv)
     if not target:
@@ -50,3 +50,17 @@ if __name__ == '__main__':
 
     for line in sys.stdin:
         order = parse_log(line)
+
+        if not order:
+            sys.stderr.write('File parse error\n')
+            continue
+
+        if order['order_type'] == 'A':
+            book.add(side=order['side'],
+                     order_id=order['order_id'],
+                     price=order['price'],
+                     size=order['size'])
+
+        elif order['order_type'] == 'R':
+            book.reduce(order_id=order['order_id'],
+                        size=order['size'])
