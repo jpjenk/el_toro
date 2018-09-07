@@ -68,13 +68,12 @@ class Market():
 
         """
 
-        if action == 'B':
-            sorted_orders = sorted(orders.items(),
-                                   key=lambda x: x[1])
-        else:
-            sorted_orders = sorted(orders.items(),
-                                   key=lambda x: x[1],
-                                   reverse=True)
+        reverse = False if action == 'B' else True
+        sorted_orders = sorted(orders.items(),
+                               key=lambda x: x[1],
+                               reverse=reverse)
+
+### note action in wrong order
 
         total = 0
 
