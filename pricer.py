@@ -5,6 +5,7 @@ import sys
 import aux
 from classdef import Market
 
+
 def parse_log(line):
     """Decode log message line."""
     msg = line.split()

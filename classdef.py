@@ -45,7 +45,7 @@ class Market():
         side = self.orders.get(order_id)[2]
         self.shares[side] -= size
 
-        # Remove the add order if the reduction order is the same size 
+        # Remove the add order if the reduction order is the same size
         if self.orders.get(order_id)[1] <= size:
             self.orders.pop(order_id, None)
 
@@ -54,3 +54,42 @@ class Market():
             self.orders[order_id] = (self.orders.get(order_id)[0],
                                      self.orders.get(order_id)[1] - size,
                                      self.orders.get(order_id)[2])
+
+    def trade(self, target, action):
+        """Calculate the expense or income incurred when buying or
+        selling a specified number of shares.
+
+        :param target: Number of shares to trade
+        :param action: Type of trade to calculate, 'B' or 'S'
+        :return total: Calculated expense or income
+        :type target: int
+        :type action: str
+        :rtype total: float
+
+        """
+
+        if action == 'B':
+            sorted_orders = sorted(orders.items(),
+                                   key=lambda x: x[1])
+        else:
+            sorted_orders = sorted(orders.items(),
+                                   key=lambda x: x[1],
+                                   reverse=True)
+
+        total = 0
+
+        for order in sorted_orders:
+            if sorted_orders[order][1][2] == action:
+
+                available_shares = sorted_orders[order][1][1]
+                price = sorted_orders[order][1][0]
+
+                debit_shares = min(available_shares, target)
+                total = total + (price * debit_shares)
+
+                target = target - debit
+                
+                if target == 0:
+                    break
+
+            return total
