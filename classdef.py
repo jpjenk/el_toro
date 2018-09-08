@@ -55,7 +55,7 @@ class Market():
                                      self.orders.get(order_id)[1] - size,
                                      self.orders.get(order_id)[2])
 
-    def trade(self, target, action):
+    def trade(self, target, buy):
         """Calculate the expense or income incurred when buying or
         selling a specified number of shares.
 
@@ -66,29 +66,32 @@ class Market():
         :type action: str
         :rtype total: float
 
+        .. note::
+            order is a dictionary of tuples in the form,
+            {order_id: (price, size, action)}
+
         """
 
-        reverse = False if action == 'B' else True
-        sorted_orders = sorted(orders.items(),
+        total = 0
+        action = 'S' if buy == True else 'B'
+
+        reverse = False if buy else True
+        sorted_orders = sorted(self.orders.items(),
                                key=lambda x: x[1],
                                reverse=reverse)
 
-### note action in wrong order
-
-        total = 0
-
         for order in sorted_orders:
-            if sorted_orders[order][1][2] == action:
+            if order[1][2] == action:
 
-                available_shares = sorted_orders[order][1][1]
-                price = sorted_orders[order][1][0]
+                available_shares = order[1][1]
+                price = order[1][0]
 
                 debit_shares = min(available_shares, target)
                 total = total + (price * debit_shares)
 
-                target = target - debit
+                target = target - debit_shares
                 
                 if target == 0:
                     break
 
-            return total
+        return total
