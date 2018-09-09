@@ -6,41 +6,6 @@ import aux
 from classdef import Market
 
 
-def parse_log(line):
-    """Decode log message line."""
-    msg = line.split()
-
-    if len(msg) == 6 and msg[1] == 'A':
-        # Add order
-        if msg[3] not in ['B', 'S']:
-            return False
-        try:
-            order = {'timestamp': int(msg[0]),
-                     'order_type': msg[1],
-                     'order_id': msg[2],
-                     'side': msg[3],
-                     'price': float(msg[4]),
-                     'size': int(msg[5])}
-            return order
-        except ValueError as e:
-            return False
-
-    elif len(msg) == 4 and msg[1] == 'R':
-        # Reduce order
-        try:
-            order = {'timestamp': int(msg[0]),
-                     'order_type': msg[1],
-                     'order_id': msg[2],
-                     'size': int(msg[3])}
-            return order
-        except ValueError as e:
-            return False
-
-    else:
-        # Message is incorrectly formatted
-        return False
-
-
 if __name__ == '__main__':
 
     book = Market()
@@ -58,7 +23,7 @@ if __name__ == '__main__':
 
     for line in sys.stdin:
 
-        order = parse_log(line)
+        order = aux.parse_log(line)
 
         # Skip if log message has formatting errors
         if not order:

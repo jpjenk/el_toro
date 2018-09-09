@@ -73,25 +73,30 @@ class Market():
         """
 
         total = 0
-        action = 'S' if buy == True else 'B'
+        action = 'S' if buy else 'B'
 
         reverse = False if buy else True
-        sorted_orders = sorted(self.orders.items(),
-                               key=lambda x: x[1],
-                               reverse=reverse)
+
+        order_tuples = self.orders.values()
+        column = list()
+
+        for order in order_tuples:
+            if order[2] == action:
+                column.append((order[0], order[1]))
+
+        sorted_orders = sorted(column, reverse=reverse)
 
         for order in sorted_orders:
-            if order[1][2] == action:
 
-                available_shares = order[1][1]
-                price = order[1][0]
+            available_shares = order[1]
+            price = order[0]
 
-                debit_shares = min(available_shares, target)
-                total = round(total + (price * debit_shares), 2)
+            debit_shares = min(available_shares, target)
+            total = round(total + (price * debit_shares), 2)
 
-                target = target - debit_shares
-                
-                if target == 0:
-                    break
+            target = target - debit_shares
+            
+            if target == 0:
+                break
 
         return total
