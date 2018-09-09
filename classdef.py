@@ -73,25 +73,40 @@ class Market():
         """
 
         total = 0
+        # XXX fix this bool statement
         action = 'S' if buy == True else 'B'
 
         reverse = False if buy else True
-        sorted_orders = sorted(self.orders.items(),
-                               key=lambda x: x[1],
-                               reverse=reverse)
+
+        share_sum = 0
+        draft = list()
+        #  print(self.orders)
+        #  print('----------------------')
+        for order in self.orders:
+            if self.orders[order][2] == action:
+                draft.append(self.orders[order])
+                share_sum += self.orders[order][1]
+                if share_sum >= target:
+                    break
+        #  print(draft)
+        #  print('----------------------')
+
+        sorted_orders = sorted(draft, reverse=reverse)
+
+        #  print(sorted_orders)
+        #  print('----------------------')
 
         for order in sorted_orders:
-            if order[1][2] == action:
 
-                available_shares = order[1][1]
-                price = order[1][0]
+            available_shares = order[1]
+            price = order[0]
 
-                debit_shares = min(available_shares, target)
-                total = round(total + (price * debit_shares), 2)
+            debit_shares = min(available_shares, target)
+            total = round(total + (price * debit_shares), 2)
 
-                target = target - debit_shares
-                
-                if target == 0:
-                    break
+            target = target - debit_shares
+            
+            if target == 0:
+                break
 
         return total
