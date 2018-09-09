@@ -87,7 +87,7 @@ class Market():
                 price = order[1][0]
 
                 debit_shares = min(available_shares, target)
-                total = total + (price * debit_shares)
+                total = round(total + (price * debit_shares), 2)
 
                 target = target - debit_shares
                 

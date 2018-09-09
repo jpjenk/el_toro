@@ -46,8 +46,11 @@ if __name__ == '__main__':
     book = Market()
     standing_sell = False
     last_sell = 0
+    sell_msg = None
     standing_buy = False
     last_buy = 0
+    buy_msg = None
+    last_ts = 0
 
     target = aux.parse_args(sys.argv)
     if not target:
@@ -57,10 +60,14 @@ if __name__ == '__main__':
 
         order = parse_log(line)
 
+        # Skip if log message has formatting errors
         if not order:
+            print('parse error')
+            sys.exit()
             sys.stderr.write('Message error: {0:s}\n'.format(line))
             continue
 
+        # Modify the book based on incomming message
         if order['order_type'] == 'A':
             book.add(side=order['side'],
                      order_id=order['order_id'],
@@ -71,52 +78,42 @@ if __name__ == '__main__':
             book.reduce(order_id=order['order_id'],
                         size=order['size'])
 
+        # Run pricing logic if all simultaneous messages recieved
+        ts = order['timestamp']
+
         if standing_sell:
             if book.shares['B'] >= target:
                 total = book.trade(target=target, buy=False)
                 if total != last_sell:
-                    print('{0:d} S {1:0.2f}'
-                          .format(order['timestamp'], total))
                     last_sell = total
+                    print('{0:d} S {1:0.2f}'.format(ts, total))
             else:
-                print('{0:d} S NA'.format(order['timestamp']))
-                last_sell = 0
+                print('{0:d} S NA'.format(ts))
+                #  last_sell = 0
                 standing_sell = False
 
         elif not standing_sell:
             if book.shares['B'] >= target:
                 total = book.trade(target=target, buy=False)
-                print('{0:d} S {1:0.2f}'
-                      .format(order['timestamp'], total))
                 standing_sell = True
                 last_sell = total
+                print('{0:d} S {1:0.2f}'.format(ts, total))
 
         if standing_buy:
             if book.shares['S'] >= target:
                 total = book.trade(target=target, buy=True)
+                #  print(last_buy, total)
                 if total != last_buy:
-                    print('{0:d} B {1:0.2f}'
-                          .format(order['timestamp'], total))
                     last_buy = total
+                    print('{0:d} B {1:0.2f}'.format(ts, total))
             else:
-                print('{0:d} B NA'.format(order['timestamp']))
-                last_buy = 0
+                #  last_buy = 0
                 standing_buy = False
+                print('{0:d} B NA'.format(ts))
 
         elif not standing_buy:
             if book.shares['S'] >= target:
                 total = book.trade(target=target, buy=True)
-                print('{0:d} B {1:0.2f}'
-                      .format(order['timestamp'], total))
                 standing_buy = True
                 last_buy = total
-
-
-
-
-        #  if book.shares['S'] >= target:
-        #      pass
-        #      #  total = book.trade(target=target, buy=True)
-        #      #  print('{0:d} B {1:0.2f}'.format(order['timestamp'], total))
-        #  else:
-        #      pass
+                print('{0:d} B {1:0.2f}'.format(ts, total))
