@@ -9,13 +9,10 @@ from classdef import Market
 if __name__ == '__main__':
 
     book = Market()
-    standing_sell = False
     last_sell = 0
-    sell_msg = None
-    standing_buy = False
     last_buy = 0
-    buy_msg = None
     last_ts = 0
+    standing = dict(sell=False, buy=False)
 
     target = aux.parse_args(sys.argv)
     if not target:
@@ -27,8 +24,6 @@ if __name__ == '__main__':
 
         # Skip if log message has formatting errors
         if not order:
-            print('parse error')
-            sys.exit()
             sys.stderr.write('Message error: {0:s}\n'.format(line))
             continue
 
@@ -46,39 +41,36 @@ if __name__ == '__main__':
         # Run pricing logic if all simultaneous messages recieved
         ts = order['timestamp']
 
-        if standing_sell:
+        if standing['sell']:
             if book.shares['B'] >= target:
-                total = book.trade(target=target, buy=False)
+                total = book.trade(target=target, action='sell')
                 if total != last_sell:
                     last_sell = total
                     print('{0:d} S {1:0.2f}'.format(ts, total))
             else:
                 print('{0:d} S NA'.format(ts))
-                #  last_sell = 0
-                standing_sell = False
+                standing['sell'] = False
 
-        elif not standing_sell:
+        elif not standing['sell']:
             if book.shares['B'] >= target:
-                total = book.trade(target=target, buy=False)
-                standing_sell = True
+                total = book.trade(target=target, action='sell')
+                standing['sell'] = True
                 last_sell = total
                 print('{0:d} S {1:0.2f}'.format(ts, total))
 
-        if standing_buy:
+        if standing['buy']:
             if book.shares['S'] >= target:
-                total = book.trade(target=target, buy=True)
-                #  print(last_buy, total)
+                total = book.trade(target=target, action='buy')
                 if total != last_buy:
                     last_buy = total
                     print('{0:d} B {1:0.2f}'.format(ts, total))
             else:
-                #  last_buy = 0
-                standing_buy = False
+                standing['buy'] = False
                 print('{0:d} B NA'.format(ts))
 
-        elif not standing_buy:
+        elif not standing['buy']:
             if book.shares['S'] >= target:
-                total = book.trade(target=target, buy=True)
-                standing_buy = True
+                total = book.trade(target=target, action='buy')
+                standing['buy'] = True
                 last_buy = total
                 print('{0:d} B {1:0.2f}'.format(ts, total))
