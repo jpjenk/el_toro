@@ -6,7 +6,7 @@ my $hash200 = '6395166d71721b6ef0ee36f014d72a5d';
 my $hash10000 = 'bf7625d8c5982c0b7582e1a240086603';
 
 print "Share target size 1:      ";
-my $hash = `./pricer.py 1 < test.in | md5`;
+my $hash = `../pricer.py 1 < test.in | md5`;
 if ($hash == $hash1) {
         print "PASS\n";
 } else {
@@ -14,7 +14,7 @@ if ($hash == $hash1) {
 }
 
 print "Share target size 200:    ";
-my $hash = `./pricer.py 200 < test.in | md5`;
+my $hash = `../pricer.py 200 < test.in | md5`;
 if ($hash == $hash200) {
         print "PASS\n";
 } else {
@@ -22,7 +22,7 @@ if ($hash == $hash200) {
 }
 
 print "Share target size 10000:  ";
-my $hash = `./pricer.py 10000 < test.in | md5`;
+my $hash = `../pricer.py 10000 < test.in | md5`;
 if ($hash == $hash10000) {
         print "PASS\n";
 } else {
@@ -30,4 +30,4 @@ if ($hash == $hash10000) {
 }
 
 print "Stdout error test:\n";
-my $corrupt_log = `./pricer.py 10000 < test.corrupt.in`;
+my $corrupt_log = `../pricer.py 10000 < test.corrupt.in`;
