@@ -3,13 +3,14 @@ class Market():
 
     def __init__(self):
         """Define internal structures for object instance."""
+        from collections import OrderedDict
 
         # The total shares available for each side of the ledger, bid "B"
         # and sale "S"
         self.shares = dict(B=0, S=0)
 
         # The running ledger of buy and sell order details
-        self.orders = dict()
+        self.orders = OrderedDict()
 
     def add(self, side, order_id, price, size):
         """Ingest a new buy or sell order.
@@ -24,12 +25,17 @@ class Market():
         :type size: int
 
         """
+        from collections import OrderedDict
 
         # Add the order details as an n-tuple to the ledger dictionary
         self.orders[order_id] = (price, size, side)
 
         # Increase the shares available on the appropriate side
         self.shares[side] += size
+
+        # Sort book into a list then recast as an ordered dictionary
+        sorted_orders = sorted(self.orders.items(), key=lambda v: v[1])
+        self.orders = OrderedDict(sorted_orders)
 
     def reduce(self, order_id, size):
         """Reduce shares from an existing order.
@@ -40,6 +46,7 @@ class Market():
         :type size: int
 
         """
+        from collections import OrderedDict
 
         # Decrease the number of shares available on the appropriate side.
         # If an order is missing due to an earlier input message error,
@@ -59,6 +66,10 @@ class Market():
             self.orders[order_id] = (self.orders.get(order_id)[0],
                                      self.orders.get(order_id)[1] - size,
                                      self.orders.get(order_id)[2])
+
+        # Sort book into a list then recast as an ordered dictionary
+        sorted_orders = sorted(self.orders.items(), key=lambda v: v[1])
+        self.orders = OrderedDict(sorted_orders)
 
     def trade(self, target, action):
         """Calculate the expense or income incurred when buying or
@@ -90,11 +101,12 @@ class Market():
             if order[2] == side:
                 column.append((order[0], order[1]))
 
-        # Sort appropriatly, buy low and sell high
-        reverse_switch = False if action == 'buy' else True
+        # Ledger column is sorted low-high, reverse this for sell pricing
+        if action == 'sell':
+            column = list(reversed(column))
 
-        # Loop over sorted orders until target shares aquired
-        for order in sorted(column, reverse=reverse_switch):
+        # Loop over sorted orders until target shares acquired
+        for order in column:
 
             available_shares = order[1]
             price = order[0]
