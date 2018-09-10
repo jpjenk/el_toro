@@ -67,21 +67,20 @@ class Market():
         :rtype total: float
 
         .. note::
-            order is a dictionary of tuples in the form,
-            {order_id: (price, size, action)}
+            orders is a dictionary of tuples in the form,
+            {order_id: (price, size, side)}
 
         """
 
         total = 0
-        action = 'S' if buy else 'B'
-
+        side = 'S' if buy else 'B'
         reverse = False if buy else True
 
         order_tuples = self.orders.values()
         column = list()
 
         for order in order_tuples:
-            if order[2] == action:
+            if order[2] == side:
                 column.append((order[0], order[1]))
 
         sorted_orders = sorted(column, reverse=reverse)
@@ -95,8 +94,8 @@ class Market():
             total = round(total + (price * debit_shares), 2)
 
             target = target - debit_shares
-            
+
             if target == 0:
                 break
-
+            
         return total
