@@ -78,13 +78,17 @@ class Market():
         total = 0
         column = list()
 
+        # Build a list of (price, size) tuples for the specified ledger side
         order_details = self.orders.values()
         side = 'S' if action == 'buy' else 'B'
         for order in order_details:
             if order[2] == side:
                 column.append((order[0], order[1]))
 
+        # Sort appropriatly, buy low and sell high
         reverse_switch = False if action == 'buy' else True
+
+        # Loop over sorted orders until target shares aquired
         for order in sorted(column, reverse=reverse_switch):
 
             available_shares = order[1]
