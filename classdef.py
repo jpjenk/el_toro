@@ -41,9 +41,14 @@ class Market():
 
         """
 
-        # Decrease the number of shares available on the appropriate side
-        side = self.orders.get(order_id)[2]
-        self.shares[side] -= size
+        # Decrease the number of shares available on the appropriate side.
+        # If an order is missing due to an earlier input message error,
+        # the reduce order will fail gracefully.
+        try:
+            side = self.orders.get(order_id)[2]
+            self.shares[side] -= size
+        except TypeError as e:
+            return
 
         # Remove the add order if the reduction order is the same size
         if self.orders.get(order_id)[1] <= size:

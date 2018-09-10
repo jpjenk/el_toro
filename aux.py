@@ -9,13 +9,13 @@ def parse_args(args):
         sys.exit()
 
     elif len(args) > 2:
-        raise Exception('Too many parameters')
+        raise ValueError('Too many parameters')
 
     else:
         try:
             target = int(args[1])
         except ValueError as e:
-            raise Exception('Target-size must be an integer value')
+            raise ValueError('Target-size must be an integer value')
 
     return target
 
@@ -26,9 +26,10 @@ def parse_log(line):
     msg = line.split()
 
     if len(msg) == 6 and msg[1] == 'A':
+
         # Add order
         if msg[3] not in ['B', 'S']:
-            raise Exception('Order is not a B or S')
+            raise ValueError('Order message is not a B or S')
         try:
             order = {'timestamp': int(msg[0]),
                      'order_type': msg[1],
@@ -38,9 +39,10 @@ def parse_log(line):
                      'size': int(msg[5])}
             return order
         except ValueError as e:
-            raise Exception(e)
+            raise ValueError('Type error in message')
 
     elif len(msg) == 4 and msg[1] == 'R':
+
         # Reduce order
         try:
             order = {'timestamp': int(msg[0]),
@@ -49,11 +51,10 @@ def parse_log(line):
                      'size': int(msg[3])}
             return order
         except ValueError as e:
-            raise Exception(e)
+            raise ValueError('Type error in message')
 
     else:
-        # Message is incorrectly formatted
-        return False
+        raise ValueError('Incorrect message format')
 
 
 def emit(ts, action, msg):

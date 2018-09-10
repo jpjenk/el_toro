@@ -23,8 +23,8 @@ if __name__ == '__main__':
     # Exit if runtime argument error or help requested
     try:
         target = aux.parse_args(sys.argv)
-    except Exception as e:
-        print(e)
+    except ValueError as e:
+        print(e.args[0])
         sys.exit()
 
     for line in sys.stdin:
@@ -32,8 +32,8 @@ if __name__ == '__main__':
         # Read message from logfile, skip if there are formatting errors
         try:
             order = aux.parse_log(line)
-        except Exception as e:
-            sys.stderr.write('{0:s}: {1:s}\n'.format(e, line))
+        except ValueError as e:
+            sys.stderr.write('{0:s}: {1:s}\n'.format(e.args[0], line))
             continue
 
         # Modify the book based on incomming message
