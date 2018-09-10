@@ -8,23 +8,32 @@ from classdef import Market
 
 if __name__ == '__main__':
 
+    # Two sided ledger book
     book = Market()
-    last_sell = 0
-    last_buy = 0
-    last_ts = 0
-    standing = dict(sell=False, buy=False)
 
-    target = aux.parse_args(sys.argv)
-    if not target:
+    # Tracks the value of the last issued sell (income) or buy (expense)
+    last_price = dict(sell=0, buy=0)
+
+    # Tracks whether a price has been issued or has been invalidates
+    standing_price = dict(sell=False, buy=False)
+
+    # Maps a sell or buy action to the correct side of the leger
+    side = dict(sell='B', buy='S')
+
+    # Exit if runtime argument error or help requested
+    try:
+        target = aux.parse_args(sys.argv)
+    except Exception as e:
+        print(e)
         sys.exit()
 
     for line in sys.stdin:
 
-        order = aux.parse_log(line)
-
-        # Skip if log message has formatting errors
-        if not order:
-            sys.stderr.write('Message error: {0:s}\n'.format(line))
+        # Read message from logfile, skip if there are formatting errors
+        try:
+            order = aux.parse_log(line)
+        except Exception as e:
+            sys.stderr.write('{0:s}: {1:s}\n'.format(e, line))
             continue
 
         # Modify the book based on incomming message
@@ -38,39 +47,34 @@ if __name__ == '__main__':
             book.reduce(order_id=order['order_id'],
                         size=order['size'])
 
-        # Run pricing logic if all simultaneous messages recieved
-        ts = order['timestamp']
+        # Run pricing logic for both sides of the ledger
+        for action in ['sell', 'buy']:
 
-        if standing['sell']:
-            if book.shares['B'] >= target:
-                total = book.trade(target=target, action='sell')
-                if total != last_sell:
-                    last_sell = total
-                    print('{0:d} S {1:0.2f}'.format(ts, total))
-            else:
-                print('{0:d} S NA'.format(ts))
-                standing['sell'] = False
+            if standing_price[action]:
 
-        elif not standing['sell']:
-            if book.shares['B'] >= target:
-                total = book.trade(target=target, action='sell')
-                standing['sell'] = True
-                last_sell = total
-                print('{0:d} S {1:0.2f}'.format(ts, total))
+                # Update existing pricing message if change
+                if book.shares[side[action]] >= target:
+                    total = book.trade(target=target, action=action)
+                    if total != last_price[action]:
+                        last_price[action] = total
+                        aux.emit(ts=order['timestamp'],
+                                 action=action,
+                                 msg=total)
 
-        if standing['buy']:
-            if book.shares['S'] >= target:
-                total = book.trade(target=target, action='buy')
-                if total != last_buy:
-                    last_buy = total
-                    print('{0:d} B {1:0.2f}'.format(ts, total))
-            else:
-                standing['buy'] = False
-                print('{0:d} B NA'.format(ts))
+                # Cancel pricing, sale or buy no longer possible
+                else:
+                    aux.emit(ts=order['timestamp'],
+                             action=action,
+                             msg=None)
+                    standing_price[action] = False
 
-        elif not standing['buy']:
-            if book.shares['S'] >= target:
-                total = book.trade(target=target, action='buy')
-                standing['buy'] = True
-                last_buy = total
-                print('{0:d} B {1:0.2f}'.format(ts, total))
+            elif not standing_price[action]:
+
+                # Resume pricing availability
+                if book.shares[side[action]] >= target:
+                    total = book.trade(target=target, action=action)
+                    standing_price[action] = True
+                    last_price[action] = total
+                    aux.emit(ts=order['timestamp'],
+                             action=action,
+                             msg=total)

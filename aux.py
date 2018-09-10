@@ -1,34 +1,34 @@
 def parse_args(args):
     """Error check the command line parameter."""
+    import sys
 
     if len(args) == 1 or args[1] in ['-h', '--help']:
         print('Usage: pricer target-size < logfile\n')
         print('Trading logfile analyzer. Calculates', end=' ')
-        print('cost and profit at the share target-size.')
-        return False
+        print('expense and profit at the share target-size.')
+        sys.exit()
 
     elif len(args) > 2:
-        print('Too many parameters')
-        return False
+        raise Exception('Too many parameters')
 
     else:
         try:
             target = int(args[1])
         except ValueError as e:
-            print('Target-size must be an integer value')
-            return False
+            raise Exception('Target-size must be an integer value')
 
     return target
 
 
 def parse_log(line):
     """Decode log message line."""
+
     msg = line.split()
 
     if len(msg) == 6 and msg[1] == 'A':
         # Add order
         if msg[3] not in ['B', 'S']:
-            return False
+            raise Exception('Order is not a B or S')
         try:
             order = {'timestamp': int(msg[0]),
                      'order_type': msg[1],
@@ -38,7 +38,7 @@ def parse_log(line):
                      'size': int(msg[5])}
             return order
         except ValueError as e:
-            return False
+            raise Exception(e)
 
     elif len(msg) == 4 and msg[1] == 'R':
         # Reduce order
@@ -49,8 +49,20 @@ def parse_log(line):
                      'size': int(msg[3])}
             return order
         except ValueError as e:
-            return False
+            raise Exception(e)
 
     else:
         # Message is incorrectly formatted
         return False
+
+
+def emit(ts, action, msg):
+    """Print pricing message to stdout."""
+
+    symbol = dict(sell='S', buy='B')
+
+    if msg:
+        print('{0:d} {1:s} {2:0.2f}'.format(ts, symbol[action], msg))
+
+    else:
+        print('{0:d} {1:s} NA'.format(ts, symbol[action]))

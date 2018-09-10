@@ -97,5 +97,5 @@ class Market():
 
             if target == 0:
                 break
-            
+
         return total
